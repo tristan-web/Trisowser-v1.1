@@ -14,10 +14,10 @@ app.use(express.json());
 const PORT = process.env.PORT || 10000;
 const PANEL_PASSWORD = process.env.PANEL_PASSWORD || "TS2017";
 
-// Track what users do
+// Track visited URLs
 let visited = [];
 
-// Launch Chrome
+// Launch Chrome and Puppeteer
 async function launchBrowser() {
   const chrome = await chromeLauncher.launch({
     chromeFlags: ["--no-sandbox", "--disable-gpu", "--disable-software-rasterizer"]
@@ -28,29 +28,30 @@ async function launchBrowser() {
   });
 
   const page = await browser.newPage();
-  await page.goto("https://example.com");
-
+  await page.goto("https://example.com"); // Initial page
   return { browser, page };
 }
 
 const browserPromise = launchBrowser();
 
-// Serve public
+// Serve public folder
 app.use("/", express.static(path.join(__dirname, "public")));
 
-// Protect /panel
+// Protect /panel with password
 app.use("/panel", (req, res, next) => {
   if (req.query.password === PANEL_PASSWORD) return next();
   res.status(401).send("Unauthorized");
 });
+
+// Serve panel static files
 app.use("/panel", express.static(path.join(__dirname, "panel")));
 
-// Return visited data
+// API: Return visited URLs
 app.get("/panel/api/visited", (req, res) => {
   res.json(visited);
 });
 
-// Troll endpoint
+// API: Send Cat Troll
 app.post("/panel/api/troll", async (req, res) => {
   const { page } = await browserPromise;
 
@@ -65,14 +66,13 @@ app.post("/panel/api/troll", async (req, res) => {
     img.style.width = "250px";
     img.style.height = "250px";
     document.body.appendChild(img);
-
     setTimeout(() => img.remove(), 2000);
   });
 
   res.sendStatus(200);
 });
 
-// Visit URLs
+// API: Navigate to URL
 app.post("/panel/api/goto", async (req, res) => {
   const { url } = req.body;
   const { page } = await browserPromise;
