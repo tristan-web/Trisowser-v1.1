@@ -1,9 +1,7 @@
 import express from "express";
-import { WebSocketServer } from "ws";
 import path from "path";
 import { fileURLToPath } from "url";
-import * as chromeLauncher from "chrome-launcher";
-import puppeteer from "puppeteer-core";
+import puppeteer from "puppeteer"; // Bundled Chromium
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,24 +15,17 @@ const PANEL_PASSWORD = process.env.PANEL_PASSWORD || "TS2017";
 // Track visited URLs
 let visited = [];
 
-// Launch Chrome and Puppeteer
-async function launchBrowser() {
-  const chrome = await chromeLauncher.launch({
-    chromeFlags: ["--no-sandbox", "--disable-gpu", "--disable-software-rasterizer"]
-  });
-
-  const browser = await puppeteer.connect({
-    browserURL: `http://localhost:${chrome.port}`
-  });
-
+// Launch Puppeteer with bundled Chromium
+const browserPromise = puppeteer.launch({
+  headless: true,
+  args: ["--no-sandbox", "--disable-setuid-sandbox"]
+}).then(async (browser) => {
   const page = await browser.newPage();
-  await page.goto("https://example.com"); // Initial page
+  await page.goto("https://example.com");
   return { browser, page };
-}
+});
 
-const browserPromise = launchBrowser();
-
-// Serve public folder
+// Serve homepage
 app.use("/", express.static(path.join(__dirname, "public")));
 
 // Panel route with password protection
@@ -86,9 +77,4 @@ app.post("/panel/api/goto", async (req, res) => {
 });
 
 // Start server
-const server = app.listen(PORT, () =>
-  console.log(`Trisowser running on port ${PORT}`)
-);
-
-// WebSockets (optional)
-const wss = new WebSocketServer({ server });
+app.listen(PORT, () => console.log(`Trisowser running on port ${PORT}`));
