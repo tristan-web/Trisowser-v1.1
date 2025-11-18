@@ -2,7 +2,7 @@ import express from "express";
 import { WebSocketServer } from "ws";
 import path from "path";
 import { fileURLToPath } from "url";
-import chromeLauncher from "chrome-launcher";
+import * as chromeLauncher from "chrome-launcher";
 import puppeteer from "puppeteer-core";
 
 const __filename = fileURLToPath(import.meta.url);
