@@ -37,13 +37,15 @@ const browserPromise = launchBrowser();
 // Serve public folder
 app.use("/", express.static(path.join(__dirname, "public")));
 
-// Protect /panel with password
-app.use("/panel", (req, res, next) => {
-  if (req.query.password === PANEL_PASSWORD) return next();
-  res.status(401).send("Unauthorized");
+// Panel route with password protection
+app.get("/panel", (req, res) => {
+  if (req.query.password !== PANEL_PASSWORD) {
+    return res.status(401).send("Unauthorized");
+  }
+  res.sendFile(path.join(__dirname, "panel", "index.html"));
 });
 
-// Serve panel static files
+// Serve panel static files (CSS/JS)
 app.use("/panel", express.static(path.join(__dirname, "panel")));
 
 // API: Return visited URLs
