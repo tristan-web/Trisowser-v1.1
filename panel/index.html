@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trisowser Control Panel</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #101010;
+      color: white;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 18px;
+      margin: 5px;
+    }
+    #visited {
+      margin-top: 20px;
+      padding: 10px;
+      background: #222;
+    }
+  </style>
+</head>
+<body>
+  <h1>Trisowser Panel</h1>
+
+  <h2>Go to URL:</h2>
+  <input id="url" placeholder="https://example.com">
+  <button onclick="go()">Go</button>
+
+  <h2>Troll Actions</h2>
+  <button onclick="troll()">Send Cat Troll</button>
+
+  <h2>Visited URLs</h2>
+  <div id="visited">Loading...</div>
+
+<script>
+async function go() {
+  const url = document.getElementById("url").value;
+  await fetch("/panel/api/goto", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url })
+  });
+  loadVisited();
+}
+
+async function troll() {
+  await fetch("/panel/api/troll", { method: "POST" });
+}
+
+async function loadVisited() {
+  const res = await fetch("/panel/api/visited");
+  const data = await res.json();
+  document.getElementById("visited").innerText =
+    data.map(v => v.url).join("\n") || "None yet.";
+}
+
+loadVisited();
+</script>
+
+</body>
+</html>
