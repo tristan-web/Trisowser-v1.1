@@ -1,0 +1,3 @@
+npm install
+npm install puppeteer
+node server.js
